@@ -1,6 +1,6 @@
 # Запрос параметров у пользователя
 operation = input("Введіть '+' для шифрування або '-' для дешифрувания: ").strip()
-n = int(input("Введіть значення сзуву (n): "))
+n = int(input("Введіть значення зcуву (n): "))
 
 rotors = ['BDFHJLCPRTXVZNYEIWGAKMUSQO', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ']
 message = input("Введіть данні для обробки (літери A-Z): ").strip().upper()
