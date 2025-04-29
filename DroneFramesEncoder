@@ -1,0 +1,69 @@
+import cv2
+import numpy as np
+import os
+import random
+from matplotlib import pyplot as plt
+
+# ---------------- Параметри ----------------
+block_size = (8, 8)         # новий розмір блоку (8x8)
+seed = 44257                # фіксований seed
+input_folder = "frames"     # папка з 5 кадрами
+output_folder = "encrypted_frames"
+os.makedirs(output_folder, exist_ok=True)
+
+# ---------------- Функція шифрування ----------------
+def encrypt_image(img, block_size, seed):
+    h, w, c = img.shape
+    bh, bw = block_size
+
+    # Обрізаємо зображення до кратного block_size
+    h_trim = h - h % bh
+    w_trim = w - w % bw
+    img = img[:h_trim, :w_trim]
+
+    # Ділимо на блоки
+    blocks = []
+    for y in range(0, h_trim, bh):
+        for x in range(0, w_trim, bw):
+            block = img[y:y+bh, x:x+bw]
+            blocks.append(block)
+
+    # Перемішуємо блоки за seed
+    random.seed(seed)
+    shuffled_indices = list(range(len(blocks)))
+    random.shuffle(shuffled_indices)
+
+    # Переставляємо блоки
+    shuffled_blocks = [blocks[i] for i in shuffled_indices]
+
+    # Збираємо назад
+    encrypted_img = np.zeros_like(img)
+    idx = 0
+    for y in range(0, h_trim, bh):
+        for x in range(0, w_trim, bw):
+            encrypted_img[y:y+bh, x:x+bw] = shuffled_blocks[idx]
+            idx += 1
+
+    return encrypted_img
+
+# ---------------- Обробка кадрів ----------------
+frame_files = sorted([f for f in os.listdir(input_folder) if f.endswith(('.png', '.jpg', '.jpeg'))])[:5]
+
+for i, fname in enumerate(frame_files):
+    path = os.path.join(input_folder, fname)
+    img = cv2.imread(path)
+    encrypted = encrypt_image(img, block_size, seed)
+    
+    # Зберегти
+    out_path = os.path.join(output_folder, f'encrypted_{i+1}.png')
+    cv2.imwrite(out_path, encrypted)
+
+    # (Необов’язково) Показати результат
+    plt.subplot(1, 2, 1)
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title("Original")
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(cv2.cvtColor(encrypted, cv2.COLOR_BGR2RGB))
+    plt.title("Encrypted (8x8)")
+    plt.show()
